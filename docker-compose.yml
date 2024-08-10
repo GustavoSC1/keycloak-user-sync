@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:   
+  rabbitmq:
+    image: rabbitmq:3.12.0-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - ../rabbitmq:/var/lib/rabbitmq/
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=password
+    networks:
+      - microservices-network
+
+  keycloak-db:
+    image: postgres:latest
+    container_name: keycloak-db
+    ports:
+      - 5440:5432
+    restart: always
+    environment:
+      POSTGRES_DB: keycloakDB
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: root
+    volumes:
+      - ../postgres-keycloak:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+        
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.4
+    container_name: keycloak
+    ports:
+      - 8080:8080      
+    restart: always
+    environment:
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8080
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloakDB
+      KC_DB_USERNAME: user
+      KC_DB_PASSWORD: root
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_FEATURES: token-exchange,admin-fine-grained-authz
+      KC_LOG_LEVEL: info
+      KC_METRICS_ENABLED: true
+      KC_HEALTH_ENABLED: true    
+    volumes:
+      - ../providers:/opt/keycloak/providers
+    command:
+      - start-dev
+    depends_on:
+      - keycloak-db
+    networks:
+      - microservices-network
+      
+networks:
+  microservices-network:
+    driver: bridge
+

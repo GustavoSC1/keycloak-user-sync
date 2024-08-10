@@ -1,0 +1,3 @@
+com\gustavo\keycloakUserSync\CustomEventListenerProvider.class
+com\gustavo\keycloakUserSync\CustomEventListenerProviderFactory.class
+com\gustavo\keycloakUserSync\UserEventDto.class
